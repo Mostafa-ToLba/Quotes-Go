@@ -1,6 +1,14 @@
+
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.statuses_only.statuses_only">
-   <uses-permission android:name="android.permission.INTERNET" />
+   <uses-permission android:name="android.permission.INTERNET"/>
+   <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
+   <uses-permission android:name="android.permission.WAKE_LOCK" />
+   <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+   <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+   <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION"/>
    <uses-permission android:name="android.permission.VIBRATE"/>
    <queries>
         <!-- If your app opens https URLs -->
@@ -25,7 +33,7 @@
         </intent>
    </queries>
    <application
-        android:label="Quotes Go"
+        android:label= "@string/app_name"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
        android:usesCleartextTraffic="true"
@@ -60,6 +68,12 @@
             android:value="2" />
        <meta-data
            android:name="com.google.android.gms.ads.APPLICATION_ID"
-           android:value="ca-app-pub-6775155780565884~4148784298"/>
+           android:value="ca-app-pub-3940256099942544~3347511713"/>
+      <provider
+           android:name="com.tekartik.sqflite.SqfliteContentProvider"
+           android:authorities="${applicationId}.flutter_sqflite"
+           android:exported="false"
+           android:singleUser="true">
+      </provider>
     </application>
 </manifest>

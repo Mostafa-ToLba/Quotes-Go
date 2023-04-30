@@ -1,0 +1,24 @@
+
+{
+  "appName": "Quomx",
+  "photos": "Photos",
+  "quotes": "Quotes",
+  "make": "Make",
+  "favorite": "Favorite",
+  "tap sound" : " Sounds",
+  "dark mode" : "Dark Mode",
+  "share app" : "Share App",
+  "contact us" : "Contact Us",
+  "rate us" : "Rate Us",
+  "application information" : "Application Information",
+  "app version" : "App Version",
+  "privacy policy": "Privacy Policy",
+  "click": "Click to go to the privacy policy",
+  "noFavorite": "You don't have any favorites",
+  "addForPhotos": "Please add your favorite photos",
+  "addForQuotes": "Please add your favorite quotes",
+  "save": "to save them here",
+  "quoteMake": "Write your quote here...",
+  "download": "Downloaded Successfully To Gallery",
+  "copy":"copied to clipboard"
+}

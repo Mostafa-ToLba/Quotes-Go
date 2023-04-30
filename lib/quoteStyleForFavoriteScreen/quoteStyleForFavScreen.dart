@@ -8,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:like_button/like_button.dart';
+import 'package:localize_and_translate/localize_and_translate.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:sizer/sizer.dart';
@@ -49,7 +50,7 @@ class QuoteStyleForFav extends StatefulWidget {
    void _createBottomBannerAd() {
      _bottomBannerAd = BannerAd(
        adUnitId: Platform.isAndroid
-           ? 'ca-app-pub-6775155780565884/1588965913'
+           ? 'ca-app-pub-3940256099942544/6300978111'
            : 'ca-app-pub-3940256099942544/2934735716',
        size: AdSize.banner,
        request: AdRequest(),
@@ -69,6 +70,9 @@ class QuoteStyleForFav extends StatefulWidget {
    @override
   void initState() {
      _createBottomBannerAd();
+     AppCubit.get(context).fntSize = 0;
+     AppCubit.get(context).changeArabicText= 0;
+     AppCubit.get(context).changeText= 0;
     super.initState();
   }
    @override
@@ -115,17 +119,33 @@ class QuoteStyleForFav extends StatefulWidget {
                                  child: Padding(
                                    padding:  EdgeInsets.only(top: 30.sp,bottom: 30.sp,left: 15.sp,right: 15.sp),
                                    child: Center(
-                                     child: Text(
+                                     child:Text(
+                                       '${widget.model}',
+                                       textAlign: TextAlign.center,
+                                       style: TextStyle(
+                                           height: AppCubit.get(context).GetDeviceTypeOfStyleScreen(),
+                                           color: Colors.white,
+                                           fontFamily:translator.isDirectionRTL(context)?AppCubit.get(context).ArabicFonts[AppCubit.get(context).changeArabicText]: AppCubit.get(context).Texts[AppCubit.get(context).changeText],
+                                           //      fontSize: AppCubit.get(context).forChangeFontSize(context),
+                                           fontSize: AppCubit.get(context).fntListSizes[AppCubit.get(context).fntSize],
+                                           fontWeight: FontWeight.bold),
+                                       overflow:TextOverflow.visible,
+                                     ),
+                                         /*
+                                     Text(
                                        '${widget.model}',
                                        textAlign: TextAlign.center,
                                        style: TextStyle(
                                            height: AppCubit.get(context).GetDeviceTypeOfStyleScreen(),
                                            color: Colors.white,
                                            fontFamily: AppCubit.get(context).Texts[AppCubit.get(context).changeText],
-                                           fontSize: AppCubit.get(context).forChangeFontSize(context),
+                                       //    fontSize: AppCubit.get(context).forChangeFontSize(context),
+                                           fontSize: AppCubit.get(context).fntListSizes[AppCubit.get(context).fntSize],
                                            fontWeight: FontWeight.bold),
                                        overflow:TextOverflow.visible,
                                      ),
+
+                                          */
                                    ),
                                  ),
                                ),
@@ -150,9 +170,18 @@ class QuoteStyleForFav extends StatefulWidget {
                                                  final bytes = await file.readAsBytes();
                                                  AudioCache().playBytes(bytes);
                                                }
-                                               final data = ClipboardData(text: widget.model);
-                                               Clipboard.setData(data);
-                                               Fluttertoast.showToast(msg: 'copied to clipboard',gravity: ToastGravity.CENTER);
+                                               if(translator.activeLanguageCode!='ar')
+                                               {
+                                                 final data = ClipboardData(text: widget.model);
+                                                 Clipboard.setData(data);
+                                                 Fluttertoast.showToast(msg: 'copy'.tr(),gravity: ToastGravity.CENTER);
+                                               }
+                                               if(translator.activeLanguageCode=='ar')
+                                               {
+                                                 final data = ClipboardData(text: widget.model);
+                                                 Clipboard.setData(data);
+                                                 Fluttertoast.showToast(msg: 'copy'.tr(),gravity: ToastGravity.CENTER);
+                                               }
                                              },
                                              padding: EdgeInsets.zero,
                                              icon: const Icon(
@@ -198,10 +227,12 @@ class QuoteStyleForFav extends StatefulWidget {
                                                Share.share('${widget.model}');
 
                                              },
-                                             padding: EdgeInsets.zero,
-                                             icon: const Icon(
-                                               MdiIcons.shareVariant,
-                                               color: Colors.white,
+                                             padding: EdgeInsets.only(right: 1.5.sp),
+                                             icon:Image(
+                                               image: AssetImage(
+                                                 'assets/newImages/shareNW.png',
+                                               ),
+                                               height: 19.sp,color: Colors.white,
                                              )),
                                        ),
                                        SizedBox(width: 6.w,),
@@ -220,62 +251,54 @@ class QuoteStyleForFav extends StatefulWidget {
                                                  final bytes = await file.readAsBytes();
                                                  AudioCache().playBytes(bytes);
                                                }
+                                               translator.isDirectionRTL(context)==false?
                                                setState(() {
                                                  AppCubit.get(context).ChangeText();
+                                               }):setState(() {
+                                                 AppCubit.get(context).ChangeArabicText();
                                                });
                                              },
                                              padding: EdgeInsets.zero,
-                                             icon: Image(fit: BoxFit.cover,color: Colors.white,
-                                               alignment: AlignmentDirectional.center,
-                                               height: 17.5.sp,
-                                               image: const AssetImage('assets/images/type.png'),
+                                             icon: Padding(
+                                               padding:  EdgeInsets.only(top: 2.sp),
+                                               child: Image(fit: BoxFit.cover,color: Colors.white,
+                                                 alignment: AlignmentDirectional.center,
+                                                 height: 27.sp,
+                                                 image: const AssetImage('assets/newImages/font-size.png',),
+                                               ),
                                              )),
                                        ),
                                        SizedBox(width: 6.w,),
-                                       /*
-                                   IconButton(
-                                       iconSize: 20.sp,
-                                       splashRadius: 26.sp,
-                                       splashColor: Colors.grey,
-                                       onPressed: ()
-                                       {
-                                           AppCubit.get(context).insertToDatabase(qoute: widget.qoute);
-                                           Fluttertoast.showToast(msg: 'Added Successfully to favorites',gravity: ToastGravity.CENTER);
-                                       },
-                                       padding: EdgeInsets.zero,
-                                       icon: Icon(
-                                           Icons.favorite,
-                                           color: Colors.blue,
-                                       )),
-
-                                    */
                                        Container(
                                          decoration: BoxDecoration(shape: BoxShape.circle,backgroundBlendMode: BlendMode.softLight,color: Colors.white),
-                                         child: IconButton(
-                                           onPressed: () {  },
-                                           icon: LikeButton(
-                                             padding: EdgeInsets.zero,
-                                             size: 18.sp,
-                                             circleColor:
-                                             const CircleColor(start: Colors.white, end: Colors.white),
-                                             bubblesColor: const BubblesColor(
-                                               dotPrimaryColor: Colors.white,
-                                               dotSecondaryColor: Colors.white,
-                                               dotLastColor: Colors.white,
-                                               dotThirdColor: Colors.white,
+                                         child: Padding(
+                                           padding:  EdgeInsets.only(right: translator.isDirectionRTL(context)? 2.sp:0),
+                                           child: IconButton(
+                                             onPressed: () {  },
+                                             icon: LikeButton(
+                                               padding: EdgeInsets.zero,
+                                               size: 22.sp,
+                                               circleColor:
+                                               const CircleColor(start: Colors.red, end: Colors.red),
+                                               bubblesColor:  BubblesColor(
+         dotPrimaryColor:AppCubit.get(context).isDark?Colors.red:Colors.red,
+         dotSecondaryColor: AppCubit.get(context).isDark?Colors.purple:Colors.purple,
+         dotLastColor: AppCubit.get(context).isDark?Colors.orange:Colors.orange,
+         dotThirdColor: AppCubit.get(context).isDark?Colors.red:Colors.red,
+         ),
+                                               onTap: onLikeButtonTapped,
+                                               isLiked: isLiked,
+                                               likeBuilder: ( isLiked) {
+                                                 return Padding(
+                                                   padding:  EdgeInsets.only(top: .4.sp,right: .2.sp),
+                                                   child: Icon(
+                                                     AppCubit.get(context).function(widget.model)? Icons.favorite_outline:Icons.favorite,
+                                                     color: AppCubit.get(context).function(widget.model)? Colors.white : Colors.red,
+                                                     size: translator.isDirectionRTL(context)?22.sp:24.sp,
+                                                   ),
+                                                 );
+                                               },
                                              ),
-                                             onTap: onLikeButtonTapped,
-                                             isLiked: isLiked,
-                                             likeBuilder: ( isLiked) {
-                                               return Padding(
-                                                 padding:  EdgeInsets.only(top: 0),
-                                                 child: Icon(
-                                                   AppCubit.get(context).function(widget.model)? Icons.favorite_outline:Icons.favorite,
-                                                   color: isLiked ? Colors.white : Colors.white,
-                                                   size: 20.sp,
-                                                 ),
-                                               );
-                                             },
                                            ),
                                          ),
                                        ),
@@ -334,7 +357,7 @@ class QuoteStyleForFav extends StatefulWidget {
                                                }
                                                final data = ClipboardData(text: widget.model);
                                                Clipboard.setData(data);
-                                               Fluttertoast.showToast(msg: 'copied to clipboard',gravity: ToastGravity.CENTER);
+                                               Fluttertoast.showToast(msg: 'copy'.tr(),gravity: ToastGravity.CENTER);
                                              },
                                              padding: EdgeInsets.zero,
                                              icon: const Icon(
@@ -390,9 +413,11 @@ class QuoteStyleForFav extends StatefulWidget {
                                                Share.share('${widget.model}');
                                              },
                                              padding: EdgeInsets.zero,
-                                             icon: const Icon(
-                                               MdiIcons.shareVariant,
-                                               color: Colors.white,
+                                             icon:Image(
+                                               image: AssetImage(
+                                                 'assets/newImages/shareNW.png',
+                                               ),
+                                               height: 18.sp,color: Colors.white,
                                              )),
                                        ),
                                        SizedBox(width: 6.w,),
@@ -418,10 +443,13 @@ class QuoteStyleForFav extends StatefulWidget {
                                                });
                                              },
                                              padding: EdgeInsets.zero,
-                                             icon: Image(fit: BoxFit.cover,color: Colors.white,
-                                               alignment: AlignmentDirectional.center,
-                                               height: 15.sp,
-                                               image: const AssetImage('assets/images/type.png'),
+                                             icon: Padding(
+                                               padding:  EdgeInsets.only(top: 2.sp),
+                                               child: Image(fit: BoxFit.cover,color: Colors.white,
+                                                 alignment: AlignmentDirectional.center,
+                                                 height: 25.sp,
+                                                 image: const AssetImage('assets/newImages/font-size.png',),
+                                               ),
                                              )),
                                        ),
                                        SizedBox(width: 6.w,),
@@ -668,8 +696,8 @@ class QuoteStyleForFav extends StatefulWidget {
                    ],
                  ),
                  if(SizerUtil.deviceType==DeviceType.mobile)
-                   Padding(
-                     padding:  EdgeInsets.symmetric(horizontal: 5.w,vertical: 5.h),
+                   Positioned(
+                     top: 5.5.h,left: 5.w,
                      child: Container(
                        decoration: BoxDecoration(shape: BoxShape.circle,backgroundBlendMode: BlendMode.softLight,color: Colors.white),
                        child: IconButton(onPressed: () async {
@@ -680,7 +708,7 @@ class QuoteStyleForFav extends StatefulWidget {
                            AudioCache().playBytes(bytes);
                          }
                          Navigator.pop(context);
-                       }, icon: Icon(IconBroken.Arrow___Left,size:18.sp),
+                       }, icon: Icon(translator.isDirectionRTL(context)?IconBroken.Arrow___Right:IconBroken.Arrow___Left,size:18.sp),
                          splashColor: Colors.transparent,color: Colors.white,
                          highlightColor: Colors.transparent,
 
@@ -700,7 +728,7 @@ class QuoteStyleForFav extends StatefulWidget {
                            AudioCache().playBytes(bytes);
                          }
                          Navigator.pop(context);
-                       }, icon: Icon(IconBroken.Arrow___Left,size:18.sp),
+                       }, icon: Icon(translator.isDirectionRTL(context)?IconBroken.Arrow___Right:IconBroken.Arrow___Left,size:18.sp),
                          splashColor: Colors.transparent,color: Colors.white,
                          highlightColor: Colors.transparent,
 
@@ -709,6 +737,27 @@ class QuoteStyleForFav extends StatefulWidget {
                        width: 10.w,
                      ),
                    ),
+                 Positioned(
+                   top: 5.5.h,right: 5.w,
+                   child: Container(
+                     decoration: BoxDecoration(shape: BoxShape.circle,backgroundBlendMode: BlendMode.softLight,color: Colors.white),
+                     child: IconButton(onPressed: () async {
+                       if(AppCubit.get(context).music==true)
+                       {
+                         final file = await AudioCache().loadAsFile('mixin.wav');
+                         final bytes = await file.readAsBytes();
+                         AudioCache().playBytes(bytes);
+                       }
+                       setState(() {
+                         AppCubit.get(context).changefntSizes();
+                       });
+                     }, icon: Image(image: AssetImage('assets/newImages/font.png',),color: Colors.white,height: 15.sp),
+                       splashColor: Colors.transparent,color: Colors.white,
+                       highlightColor: Colors.transparent,
+
+                     ),
+                   ),
+                 ),
                ],
              ),
              bottomNavigationBar: _isBottomBannerAdLoaded

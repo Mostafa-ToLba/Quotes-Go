@@ -1,0 +1,25 @@
+
+
+{
+  "appName": "Quomx",
+  "photos": "Fotos",
+  "quotes": "Cotizaciones",
+  "make": "Hacer",
+  "favorite": "Favorita",
+  "tap sound" : " Las voces",
+  "dark mode" : "Modo oscuro",
+  "share app" : "Compartir aplicación",
+  "contact us" : "Contacta con nosotras",
+  "rate us" : "Nos califica",
+  "application information" : "Información de la aplicación",
+  "app version" : "Version de aplicacion",
+  "privacy policy": "Política de privacidad",
+  "click": "Click para ir a la política de privacidad",
+  "noFavorite": "no tienes favoritos",
+  "addForPhotos": "Por favor agregue sus fotos favoritas",
+  "addForQuotes": "Por favor agregue sus citas favoritas",
+  "save": "para guardarlos aquí",
+  "quoteMake": "Escriba su cotización aquí",
+  "download": "Descargado correctamente a la galería",
+  "copy":"Copiado al portapapeles"
+}

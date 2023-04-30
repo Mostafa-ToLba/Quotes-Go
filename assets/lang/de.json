@@ -1,0 +1,24 @@
+
+{
+  "appName": "Quomx",
+  "photos": "Fotos",
+  "quotes": "Zitate",
+  "make": "Machen",
+  "favorite": "Favoritin",
+  "tap sound" : " Sounds",
+  "dark mode" : "Dunkler Modus",
+  "share app" : "App teilen",
+  "contact us" : "Kontaktiere uns",
+  "rate us" : "Bewerten Sie uns",
+  "application information" : "Bewerbungs informationen",
+  "app version" : "App Version",
+  "privacy policy": "Datenschutz-Bestimmungen",
+  "click": "Klicken Sie hier, um zur Datenschutzerklärung zu gelangen",
+  "noFavorite": "Sie haben keine Favoriten",
+  "addForPhotos": "Bitte fügen Sie Ihre Lieblingsfotos hinzu",
+  "addForQuotes": "Bitte fügen Sie Ihre Lieblingszitate hinzu",
+  "save": "um sie hier zu retten",
+  "quoteMake": "Schreiben Sie hier Ihr Zitat",
+  "download": "Erfolgreich in die Galerie heruntergeladen",
+  "copy":"In die Zwischenablage kopiert"
+}

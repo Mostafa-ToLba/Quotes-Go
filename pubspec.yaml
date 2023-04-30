@@ -15,7 +15,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.0+1
+version: 1.0.7+8
 
 environment:
   sdk: ">=2.16.2 <3.0.0"
@@ -29,38 +29,47 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  hexcolor: ^2.0.5
+  hexcolor: ^3.0.1
   sizer: ^2.0.15
-  material_design_icons_flutter: ^5.0.6595
+  material_design_icons_flutter: ^6.0.7096
   conditional_builder_null_safety: ^0.0.6
   smooth_page_indicator: ^1.0.0+2
   flutter_svg: ^1.0.3
   device_preview: ^1.0.0
-  bloc: ^7.2.1
-  flutter_bloc: ^7.3.0
+  bloc: ^8.0.3
+  flutter_bloc: ^8.0.1
   fluttertoast: ^8.0.9
-  share_plus: ^4.0.4
+  share_plus: ^6.3.4
   screenshot: ^1.2.3
   share_files_and_screenshot_widgets: ^1.0.6
-  lottie: ^1.2.1
-  sqflite: ^2.0.2+1
+  lottie: ^2.3.2
   url_launcher: ^6.1.2
   like_button: ^2.0.4
+  sqflite: ^2.0.1
   audioplayers: ^0.20.1
-  google_mobile_ads: ^1.2.0
+  google_mobile_ads: ^2.3.0
   switcher_button: ^0.0.4
   shared_preferences: ^2.0.8
   onesignal_flutter: ^3.3.2
-  flutter_launcher_icons: ^0.9.2
+  flutter_launcher_icons: ^0.12.0
   cached_network_image: ^3.2.0
   shimmer: ^2.0.0
-
+  paginate_firestore: ^1.0.3+1
+  http: ^0.13.4
+  path_provider: ^2.0.10
+  dio: ^5.1.1
+  share_whatsapp: ^1.0.2
+  gallery_saver: ^2.3.2
+  image_picker: ^0.8.6
+  instagram_share: ^0.2.0
+  flex_color_picker: ^3.0.0
+  localize_and_translate: ^4.1.1
   #firebase
   firebase_core: ^1.17.1
   firebase_auth: ^3.3.5
   firebase_storage: ^10.0.5
   cloud_firestore: ^3.1.4
-
+  firebase_core_platform_interface: 4.5.1
 
 
   # The following adds the Cupertino Icons font to your application.
@@ -74,7 +83,7 @@ dev_dependencies:
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/images/AppLogo.png"
+  image_path: "assets/newImages/quomxLogo.png"
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -97,7 +106,11 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/newImages/
+    - assets/lang/
     - assets/animation/file.json
+    - assets/animation/imageLoading.json
+    - assets/animation/star.json
     - assets/audio/click.mp3
     - assets/mix.wav
     - assets/mixin.wav
@@ -162,7 +175,6 @@ flutter:
       fonts:
         - asset: assets/fonts/BalsamiqSans-Regular.ttf
 
-
     - family: Mallanna
       fonts:
         - asset: assets/fonts/Mallanna-Regular.ttf
@@ -173,6 +185,216 @@ flutter:
     - family: Gurajada
       fonts:
         - asset: assets/fonts/Gurajada-Regular.ttf
+    - family: AveriaLibre
+      fonts:
+        - asset: assets/fonts/AveriaLibre-Regular.ttf
+
+    - family: BungeeInline
+      fonts:
+        - asset: assets/fonts/BungeeInline-Regular.ttf
+
+    - family: ConcertOne
+      fonts:
+        - asset: assets/fonts/ConcertOne-Regular.ttf
+    - family: Knewave
+      fonts:
+        - asset: assets/fonts/Knewave-Regular.ttf
+    - family: MeriendaOne
+      fonts:
+        - asset: assets/fonts/MeriendaOne-Regular.ttf
+    - family: NerkoOne
+      fonts:
+        - asset: assets/fonts/NerkoOne-Regular.ttf
+    - family: OleoScript
+      fonts:
+        - asset: assets/fonts/OleoScript-Regular.ttf
+    - family: Rye
+      fonts:
+        - asset: assets/fonts/Rye-Regular.ttf
+    - family: Sansita
+      fonts:
+        - asset: assets/fonts/Sansita-Regular.ttf
+    - family: Sriracha
+      fonts:
+        - asset: assets/fonts/Sriracha-Regular.ttf
+    - family: Viga
+      fonts:
+        - asset: assets/fonts/Viga-Regular.ttf
+
+
+            #arabic Fonts
+    - family: ElMessiri
+      fonts:
+        - asset: assets/fonts/ElMessiri-VariableFont_wght.ttf
+
+    - family: ArefRuqaa
+      fonts:
+        - asset: assets/arabicFonts/ArefRuqaa-Regular.ttf
+
+    - family: BlakaHollow
+      fonts:
+        - asset: assets/arabicFonts/BlakaHollow-Regular.ttf
+
+
+    - family: Change
+      fonts:
+        - asset: assets/arabicFonts/Changa-VariableFont_wght.ttf
+
+
+    - family: Gulzar
+      fonts:
+        - asset: assets/arabicFonts/Gulzar-Regular.ttf
+
+    - family: Lalezar
+      fonts:
+        - asset: assets/arabicFonts/Lalezar-Regular.ttf
+
+          ##for 15 arabic fonts
+    - family: Al Mohanad Bold
+      fonts:
+        - asset: assets/arabicFontss/alfont_com_AlFont_com_AL-Mohanad-Bold.ttf
+
+    - family: Ara Alharbi Alhanoof
+      fonts:
+        - asset: assets/arabicFontss/alfont_com_Alharbi-Alhanoof-Font.otf
+
+    - family: VLAX
+      fonts:
+        - asset: assets/arabicFontss/alfont_com_ArbFONTS-VLAX-01.otf
+
+    - family: Asmaa
+      fonts:
+        - asset: assets/arabicFontss/alfont_com_Asmaa-Font.otf
+
+    - family: Cadillac Sans Arabic Medium
+      fonts:
+        - asset: assets/arabicFontss/alfont_com_Cadillac-Sans-Arabic-Medium.ttf
+
+    - family: DG Forsha
+      fonts:
+        - asset: assets/arabicFontss/alfont_com_DG-Forsha-Regular-2.ttf
+
+    - family: DG Ghayaty
+      fonts:
+        - asset: assets/arabicFontss/alfont_com_DG-Ghayaty-Regular-F-1.ttf
+    - family: FF Malmoom Regula
+      fonts:
+        - asset: assets/arabicFontss/alfont_com_FFMalmoom-Regular.ttf
+    - family: FF Taweel Bold Stamp
+      fonts:
+        - asset: assets/arabicFontss/alfont_com_FFTaweel-BoldStamp.otf
+
+    - family: Hamdy V2 Bold
+      fonts:
+        - asset: assets/arabicFontss/alfont_com_Hamdy-V2-Bold.ttf
+
+    - family: Kharabeesh Normal Font
+      fonts:
+        - asset: assets/arabicFontss/alfont_com_Kharabeesh-Font.ttf
+
+    - family: nasaq
+      fonts:
+        - asset: assets/arabicFontss/alfont_com_nasaq.ttf
+
+    - family: Neckar Regular
+      fonts:
+        - asset: assets/arabicFontss/alfont_com_Neckar-Font-Regular.ttf
+
+    - family: VEXA
+      fonts:
+        - asset: assets/arabicFontss/alfont_com_VEXA-.ttf
+
+    - family: Hacen Algeria Bd
+      fonts:
+        - asset: assets/arabicFontss/alfont_com_خط-حسن-الجزائر-رفيع-1.ttf
+
+      #chineseFonts---
+
+    - family: LiuJianMaoCao
+      fonts:
+        - asset: assets/chineseFonts/LiuJianMaoCao-Regular.ttf
+
+    - family: LongCang
+      fonts:
+        - asset: assets/chineseFonts/LongCang-Regular.ttf
+
+    - family: MaShanZheng
+      fonts:
+        - asset: assets/chineseFonts/MaShanZheng-Regular.ttf
+
+    - family: NotoSansSC
+      fonts:
+        - asset: assets/chineseFonts/NotoSansSC-Regular.otf
+
+    - family: ZCOOLQingKeHuangYou
+      fonts:
+        - asset: assets/chineseFonts/ZCOOLQingKeHuangYou-Regular.ttf
+
+      #hindiFonts---
+
+    - family: AnuHandwrittenRegular
+      fonts:
+        - asset: assets/hindiFonts/AnuHandwrittenRegular-qRK5.otf
+
+    - family: ArivndrPomt
+      fonts:
+        - asset: assets/hindiFonts/ArivndrPomt-pMLD.ttf
+
+    - family: DevnagriNiriRegular
+      fonts:
+        - asset: assets/hindiFonts/DevnagriNiriRegular-9RR2.ttf
+
+    - family: MyhindiHindigyan
+      fonts:
+        - asset: assets/hindiFonts/MyhindiHindigyan-GW1a.ttf
+
+    - family: SanskritLogogramsRegular
+      fonts:
+        - asset: assets/hindiFonts/SanskritLogogramsRegular-Kjmo.ttf
+
+      #russiaFonts---
+
+    - family: ROJA
+      fonts:
+        - asset: assets/russiaFonts/ROJA.ttf
+
+    - family: VelvetDrop
+      fonts:
+        - asset: assets/russiaFonts/VelvetDrop.otf
+
+    - family: propaganda
+      fonts:
+        - asset: assets/russiaFonts/propaganda.ttf
+
+    - family: RUSKOF
+      fonts:
+        - asset: assets/russiaFonts/RUSKOF.ttf
+
+    - family: RussianLand
+      fonts:
+        - asset: assets/russiaFonts/RussianLand.ttf
+
+      #bnFonts---
+
+    - family: AnekBangla
+      fonts:
+        - asset: assets/bnFonts/AnekBangla_SemiExpanded-Bold.ttf
+
+    - family: RinkiySushreeMJ
+      fonts:
+        - asset: assets/bnFonts/RinkiySushreeMJ Regular.ttf
+
+    - family: SutonnyMJ
+      fonts:
+        - asset: assets/bnFonts/SutonnyMJ Regular.ttf
+
+    - family: SutonnySushreeMJ
+      fonts:
+        - asset: assets/bnFonts/SutonnySushreeMJ Regular.ttf
+
+    - family: TonnySushreeMJ
+      fonts:
+        - asset: assets/bnFonts/TonnySushreeMJ Regular.ttf
   # To add assets to your application, add an assets section, like this:
   # assets:
   #   - images/a_dot_burr.jpeg

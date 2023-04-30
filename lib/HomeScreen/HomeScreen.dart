@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:localize_and_translate/localize_and_translate.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:sizer/sizer.dart';
@@ -225,7 +226,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _createBottomBannerAd() {
     _bottomBannerAd = BannerAd(
       adUnitId: Platform.isAndroid
-          ? 'ca-app-pub-6775155780565884/1588965913'
+          ? 'ca-app-pub-3940256099942544/6300978111'
           : 'ca-app-pub-3940256099942544/2934735716',
       size: AdSize.banner,
       request: AdRequest(),
@@ -267,33 +268,39 @@ class _HomeScreenState extends State<HomeScreen> {
                       Navigator.pop(context);
                     },
                   )
-                : Padding(
-                    padding: EdgeInsets.only(left: 5.w, top: 2.sp),
-                    child: InkWell(
-                        onTap: () async {
-                          if (AppCubit.get(context).music == true) {
-                            final file =
-                                await AudioCache().loadAsFile('mixin.wav');
-                            final bytes = await file.readAsBytes();
-                            AudioCache().playBytes(bytes);
-                          }
-                          scaffoldkey.currentState!.openDrawer();
-                        },
-                        child: const Image(
-                          image: AssetImage('assets/images/tabBar.png'),
-                        )),
-                  ),
+                : IconButton(
+              icon:  Icon(
+                translator.isDirectionRTL(context)?IconBroken.Arrow___Right:IconBroken.Arrow___Left,
+                color: Colors.white,
+                size: 20.sp,
+              ),
+              onPressed: () async {
+                if(AppCubit.get(context).music==true)
+                {
+                  final file = await AudioCache().loadAsFile('mixin.wav');
+                  final bytes = await file.readAsBytes();
+                  AudioCache().playBytes(bytes);
+                }
+                Navigator.pop(context);
+              },
+            ),
+            titleSpacing: 0,
             title: AppCubit.get(context).isSearching
                 ? SearchField()
-                : Padding(
+                : Text('quotes'.tr(),style: TextStyle(color: Colors.white,fontSize: 15.sp,fontWeight: FontWeight.w800,fontFamily:translator.activeLanguageCode=='ar'? 'ElMessiri':'VarelaRound',),),
+            /*
+            Padding(
                     padding: EdgeInsets.only(left: 5.w),
                     child: Image(
                       image: const AssetImage('assets/images/QuotesGo.png'),
                       height: 40.sp,
                     ),
                   ),
+
+             */
             actions: buildAppBarActions(context),
           ),
+          /*
           drawer: Drawer(
             width: 78.w,
             child: Container(
@@ -679,10 +686,13 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
+
+           */
           body: StreamBuilder<QuerySnapshot>(
             stream: AppCubit.get(context).GetQoutes(),
             builder: (context, snapshot) {
               if (!snapshot.hasData || snapshot.data!.size == 0) {
+                if(SizerUtil.deviceType==DeviceType.mobile)
                 return Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16,vertical: 15),
                     child: ListView.separated(
@@ -717,36 +727,96 @@ class _HomeScreenState extends State<HomeScreen> {
                           )
                         ],
                       ),
-                      separatorBuilder: (context, index) =>
-                      const SizedBox(height: 16),
+                      separatorBuilder: (context, index) => const SizedBox(height: 16),
                     ));
+                else return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16,vertical: 15),
+                      child: ListView.separated(
+                        itemCount: 12,
+                        itemBuilder: (context, index) =>Row(
+                          children: [
+                             Skeleton(height: 40.sp, width: 40.sp),
+                             SizedBox(width: 16.0.sp),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  //     const Skeleton(width: 80),
+                                   SizedBox(height: 16.sp / 2),
+                                   Skeleton(),
+                                   SizedBox(height: 16.sp / 2),
+                                   Skeleton(),
+                                   SizedBox(height: 16.sp / 2),
+                                  Row(
+                                    children:  [
+                                      Expanded(
+                                        child: Skeleton(),
+                                      ),
+                                      SizedBox(width: 16.sp),
+                                      Expanded(
+                                        child: Skeleton(),
+                                      ),
+                                    ],
+                                  )
+                                ],
+                              ),
+                            )
+                          ],
+                        ),
+                        separatorBuilder: (context, index) =>  SizedBox(height: 16.sp),
+                      ));
               } else {
                 AppCubit.get(context).Qoutes = [];
                 List<String> Ids = [];
                 for (var doc in snapshot.data!.docs) {
                   AppCubit.get(context).Qoutes.add(
-                      QouteModel(name: doc['name'], iconImage: doc['icon']));
+                      QouteModel(name: doc['name'], iconImage: doc['icon'],arabicName:doc['Ar'],russia: doc['Ru'],
+                      hindi: doc['Hi'],Chinese: doc['Zh'],portogul: doc['Pt'],bngla: doc['Bn'],
+                      deutchName: doc['De'],EspaniaName: doc['Es'],FranceName: doc['Fr']));
                   Ids.add(doc.id);
+
                 }
                 return ConditionalBuilder(
                   condition: AppCubit.get(context).Qoutes.length > 0,
                   builder: (BuildContext context) => Container(
                       child: ListView.separated(
-                          itemBuilder: (context, index) => AppCubit.get(context)
-                                  .searchTextController
-                                  .text
-                                  .isEmpty
-                              ? ItemBuilder(
-                                  context,
-                                  AppCubit.get(context).Qoutes[index],
-                                  Ids[index],
-                                )
-                              : ItemBuilder(
-                                  context,
-                                  AppCubit.get(context)
-                                      .searchedForCharacters[index],
-                                  Ids[index],
-                                ),
+                          itemBuilder: (context, index)
+                          {
+                            if(translator.activeLanguageCode=='en'||translator.activeLanguageCode=='de'||translator.activeLanguageCode=='fr'
+                                ||translator.activeLanguageCode=='es'||translator.activeLanguageCode=='bn'||translator.activeLanguageCode=='pt'
+                                ||translator.activeLanguageCode=='zh'||translator.activeLanguageCode=='es'||translator.activeLanguageCode=='hi'
+                                ||translator.activeLanguageCode=='ru')
+                            {
+                              return AppCubit.get(context).searchTextController.text.isEmpty
+                                  ? ItemBuilder(
+                                context,
+                                AppCubit.get(context).Qoutes[index],
+                                Ids[index],
+                              )
+                                  : ItemBuilder(
+                                context,
+                                AppCubit.get(context)
+                                    .searchedForCharacters[index],
+                                Ids[index],
+                              );
+                            }
+                            if(translator.activeLanguageCode=='ar')
+                            {
+                              return AppCubit.get(context).searchTextController.text.isEmpty
+                                  ? ArabicItemBuilder(
+                                context,
+                                AppCubit.get(context).Qoutes[index],
+                                Ids[index],
+                              )
+                                  : ArabicItemBuilder(
+                                context,
+                                AppCubit.get(context)
+                                    .searchedForCharacters[index],
+                                Ids[index],
+                              );
+                            }
+                            else return Text('');
+                          } ,
                           separatorBuilder: (context, index) => Container(
                                 height: 0,
                               ),
@@ -798,29 +868,47 @@ Widget ItemBuilder(context, QouteModel qout, String id) => InkWell(
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => QouteScreen(qout.name, id),
+            builder: (context)
+            {
+              if(translator.activeLanguageCode=='en')
+                return QouteScreen(qout.name, id);
+              if(translator.activeLanguageCode=='ar')
+                return QouteScreen(qout.arabicName, id);
+              if(translator.activeLanguageCode=='bn')
+                return QouteScreen(qout.bngla, id);
+              if(translator.activeLanguageCode=='de')
+                return QouteScreen(qout.deutchName, id);
+              if(translator.activeLanguageCode=='es')
+                return QouteScreen(qout.EspaniaName, id);
+              if(translator.activeLanguageCode=='fr')
+                return QouteScreen(qout.FranceName, id);
+              if(translator.activeLanguageCode=='hi')
+                return QouteScreen(qout.hindi, id);
+              if(translator.activeLanguageCode=='pt')
+                return QouteScreen(qout.portogul, id);
+              if(translator.activeLanguageCode=='ru')
+                return QouteScreen(qout.russia, id);
+              else return  QouteScreen(qout.Chinese, id);
+            }
           ),
         );
       },
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: Container(
-          decoration: BoxDecoration(
+          height: 11.h,
+          decoration:  BoxDecoration(
             color: AppCubit.get(context).isDark == false
                 ? Colors.white
                 : Colors.black,
-            boxShadow: [
-              BoxShadow(
-                offset: const Offset(0, 1),
-                blurRadius: 2,
-                color: AppCubit.get(context).isDark == false
-                    ? Colors.black.withOpacity(0.1)
-                    : Colors.white,
-              ),
-            ],
+              borderRadius: BorderRadius.all(Radius.circular(8.sp)),
+            border: Border.all(
+              color: AppCubit.get(context).isDark==false?Colors.grey[200]!:Colors.white54,
+              width: 1,
+            ),
           ),
           child: Padding(
-            padding: EdgeInsets.all(2.4.h),
+            padding: EdgeInsets.all(1.h),
             child: Row(
               children: [
                 Container(
@@ -832,20 +920,11 @@ Widget ItemBuilder(context, QouteModel qout, String id) => InkWell(
                   ),
                   height: 38.sp,
                   width: 38.sp,
-                  decoration: BoxDecoration(
+                  decoration:  BoxDecoration(
                       color: AppCubit.get(context).isDark == false
                           ? Colors.transparent
                           : Colors.transparent,
                       borderRadius: BorderRadius.all(Radius.circular(.4.h)),
-                      /*
-                      image: DecorationImage(
-                          fit: BoxFit.cover,
-                          image: NetworkImage(
-                            '${qout.iconImage}',
-                          )
-                      )
-
-                       */
                   ),
                 ),
                 SizedBox(
@@ -854,61 +933,271 @@ Widget ItemBuilder(context, QouteModel qout, String id) => InkWell(
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '${qout.name}',
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                          fontSize: 15.sp,
-                          fontFamily: 'VarelaRound',
-                          fontWeight: FontWeight.w600,
-                          color: AppCubit.get(context).isDark == false
-                              ? Colors.grey[700]
-                              : Colors.white),
+                    SizedBox(
+                      height: 1.5.h,
                     ),
+                    if(translator.activeLanguageCode=='en')
+                      Container(
+        height: 3.h,
+        child: Text(
+          '${qout.name}',
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+              fontSize: 15.sp,
+              fontFamily: 'VarelaRound',
+              fontWeight: FontWeight.w600,
+              color: AppCubit.get(context).isDark == false
+                  ? Colors.grey[700]
+                  : Colors.white),
+        ),
+      ),
+                    if(translator.activeLanguageCode=='de')
+                      Container(
+                        height: 3.h,
+                        child: Text(
+                          '${qout.deutchName}',
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              fontSize: 15.sp,
+                              fontFamily: 'VarelaRound',
+                              fontWeight: FontWeight.w600,
+                              color: AppCubit.get(context).isDark == false
+                                  ? Colors.grey[700]
+                                  : Colors.white),
+                        ),
+                      ),
+                    if(translator.activeLanguageCode=='es')
+                      Container(
+                        height: 3.h,
+                        child: Text(
+                          '${qout.EspaniaName}',
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              fontSize: 15.sp,
+                              fontFamily: 'VarelaRound',
+                              fontWeight: FontWeight.w600,
+                              color: AppCubit.get(context).isDark == false
+                                  ? Colors.grey[700]
+                                  : Colors.white),
+                        ),
+                      ),
+                    if(translator.activeLanguageCode=='bn')
+                      Container(
+                        height: 3.h,
+                        child: Text(
+                          '${qout.bngla}',
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              fontSize: 15.sp,
+                              fontFamily: 'VarelaRound',
+                              fontWeight: FontWeight.w600,
+                              color: AppCubit.get(context).isDark == false
+                                  ? Colors.grey[700]
+                                  : Colors.white),
+                        ),
+                      ),
+                    if(translator.activeLanguageCode=='fr')
+                      Container(
+                        height: 3.h,
+                        child: Text(
+                          '${qout.FranceName}',
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              fontSize: 15.sp,
+                              fontFamily: 'VarelaRound',
+                              fontWeight: FontWeight.w600,
+                              color: AppCubit.get(context).isDark == false
+                                  ? Colors.grey[700]
+                                  : Colors.white),
+                        ),
+                      ),
+                    if(translator.activeLanguageCode=='hi')
+                      Container(
+                        height: 3.h,
+                        child: Text(
+                          '${qout.hindi}',
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              fontSize: 15.sp,
+                              fontFamily: 'VarelaRound',
+                              fontWeight: FontWeight.w600,
+                              color: AppCubit.get(context).isDark == false
+                                  ? Colors.grey[700]
+                                  : Colors.white),
+                        ),
+                      ),
+                    if(translator.activeLanguageCode=='pt')
+                      Container(
+                        height: 3.h,
+                        child: Text(
+                          '${qout.portogul}',
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              fontSize: 15.sp,
+                              fontFamily: 'VarelaRound',
+                              fontWeight: FontWeight.w600,
+                              color: AppCubit.get(context).isDark == false
+                                  ? Colors.grey[700]
+                                  : Colors.white),
+                        ),
+                      ),
+                    if(translator.activeLanguageCode=='ru')
+                      Container(
+                        height: 3.h,
+                        child: Text(
+                          '${qout.russia}',
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              fontSize: 15.sp,
+                              fontFamily: 'VarelaRound',
+                              fontWeight: FontWeight.w600,
+                              color: AppCubit.get(context).isDark == false
+                                  ? Colors.grey[700]
+                                  : Colors.white),
+                        ),
+                      ),
+                    if(translator.activeLanguageCode=='zh')
+                      Container(
+                        height: 3.h,
+                        child: Text(
+                          '${qout.Chinese}',
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                              fontSize: 15.sp,
+                              fontFamily: 'VarelaRound',
+                              fontWeight: FontWeight.w600,
+                              color: AppCubit.get(context).isDark == false
+                                  ? Colors.grey[700]
+                                  : Colors.white),
+                        ),
+                      ),
+                    if(translator.activeLanguageCode=='zh')
+                      SizedBox(
+                        height: .5.h,
+                      ),
+                    if(translator.activeLanguageCode=='ru')
+                      SizedBox(
+                        height: .5.h,
+                      ),
                     SizedBox(
                       height: .8.h,
                     ),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Padding(
-                          padding: EdgeInsets.only(top: 0.sp),
-                          child: Container(
-                              height: 2.h,
-                              width: 4.w,
-                              child: Image(
-                                height: 15.sp,
-                                color: Colors.grey,
-                                image:
-                                    const AssetImage('assets/images/email.png'),
-                              )),
-                        ),
+
+                        Container(
+                            height: 2.h,
+                            width: 4.w,
+                            child: Image(
+                              height: 15.sp,
+                              color: Colors.grey,
+                              image:
+                                  const AssetImage('assets/images/email.png'),
+                            )),
                         SizedBox(
                           width: 1.w,
                         ),
-                        StreamBuilder<QuerySnapshot>(
-                          stream: AppCubit.get(context).GetNumberOfQoutes(id),
-                          builder: (context, snapshot) {
-                            if (!snapshot.hasData || snapshot.data!.size == 0) {
-                              return Text(
-                                '0 Messages',
-                                style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 11.sp,
-                                    fontFamily: 'VarelaRound'),
-                                textAlign: TextAlign.center,
-                              );
-                            } else {
-                              return Text(
-                                '${snapshot.data!.docs.length} Messages',
-                                style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 11.sp,
-                                    fontFamily: 'VarelaRound'),
-                                textAlign: TextAlign.center,
-                              );
-                            }
-                          },
+                        Container(
+                          height: 2.1.h,
+                          child: StreamBuilder<QuerySnapshot>(
+                            stream: AppCubit.get(context).GetNumberOfQoutes(id),
+                            builder: (context, snapshot) {
+                              if (!snapshot.hasData || snapshot.data!.size == 0) {
+                                return Text(
+                                  '0 Messages',
+                                  style: TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 11.sp,
+                                      fontFamily: 'VarelaRound'),
+                                  textAlign: TextAlign.center,
+                                );
+                              } else {
+                                if(translator.activeLanguageCode=='de')
+                                 return Text(
+                                  '${snapshot.data!.docs.length} Mitteilungen',
+                                  style: TextStyle(
+                                      color: Colors.grey,
+                                      fontSize: 11.sp,
+                                      fontFamily: 'VarelaRound'),
+                                  textAlign: TextAlign.center,
+                                );
+                                if(translator.activeLanguageCode=='es')
+                                  return  Text(
+                                    '${snapshot.data!.docs.length} Mensajes',
+                                    style: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 11.sp,
+                                        fontFamily: 'VarelaRound'),
+                                    textAlign: TextAlign.center,
+                                  );
+                                if(translator.activeLanguageCode=='bn')
+                                  return   Text(
+                                    '${snapshot.data!.docs.length} বার্তা',
+                                    style: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 11.sp,
+                                        fontFamily: 'VarelaRound'),
+                                    textAlign: TextAlign.center,
+                                  );
+                                if(translator.activeLanguageCode=='fr')
+                                  return  Text(
+                                    '${snapshot.data!.docs.length} Messages',
+                                    style: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 11.sp,
+                                        fontFamily: 'VarelaRound'),
+                                    textAlign: TextAlign.center,
+                                  );
+                                if(translator.activeLanguageCode=='hi')
+                                  return  Text(
+                                    '${snapshot.data!.docs.length} संदेशों',
+                                    style: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 11.sp,
+                                        fontFamily: 'VarelaRound'),
+                                    textAlign: TextAlign.center,
+                                  );
+                                if(translator.activeLanguageCode=='pt')
+                                  return Text(
+                                    '${snapshot.data!.docs.length} mensagens',
+                                    style: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 11.sp,
+                                        fontFamily: 'VarelaRound'),
+                                    textAlign: TextAlign.center,
+                                  );
+                                if(translator.activeLanguageCode=='ru')
+                                  return  Text(
+                                    '${snapshot.data!.docs.length} Сообщения',
+                                    style: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 11.sp,
+                                        fontFamily: 'VarelaRound',height: .9.sp),
+                                    textAlign: TextAlign.center,
+                                  );
+                                if(translator.activeLanguageCode=='zh')
+                                  return Text(
+                                    '${snapshot.data!.docs.length} 訊息',
+                                    style: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 11.sp,
+                                        fontFamily: 'ZCOOLQingKeHuangYou'),
+                                    textAlign: TextAlign.center,
+                                  );
+                                if(translator.activeLanguageCode=='en')
+                                  return Text(
+                                    '${snapshot.data!.docs.length} Messages',
+                                    style: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: 11.sp,
+                                        fontFamily: 'VarelaRound'),
+                                    textAlign: TextAlign.center,
+                                  );
+                                else return Text('data');
+                              }
+                            },
+                          ),
                         ),
                       ],
                     ),
@@ -923,3 +1212,132 @@ Widget ItemBuilder(context, QouteModel qout, String id) => InkWell(
         ),
       ),
     );
+
+Widget ArabicItemBuilder(context, QouteModel qout, String id) => InkWell(
+  onTap: () async {
+    if (AppCubit.get(context).music == true) {
+      final file = await AudioCache().loadAsFile('mixin.wav');
+      final bytes = await file.readAsBytes();
+      AudioCache().playBytes(bytes);
+    }
+    //      AppCubit.get(context).loadInterstialAd();
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => QouteScreen(qout.arabicName, id),
+      ),
+    );
+  },
+  child: Padding(
+    padding: const EdgeInsets.all(8.0),
+    child: Container(
+      height: 11.h,
+      decoration:  BoxDecoration(
+        color: AppCubit.get(context).isDark == false
+            ? Colors.white
+            : Colors.black,
+        borderRadius: BorderRadius.all(Radius.circular(8.sp)),
+        border: Border.all(
+          color: AppCubit.get(context).isDark==false?Colors.grey[200]!:Colors.white54,
+          width: 1,
+        ),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(1.h),
+        child: Row(
+          children: [
+            Container(
+              child: CachedNetworkImage(
+                imageUrl: '${qout.iconImage}',
+                fit: BoxFit.cover,
+                placeholder: (context, imageProvider) =>
+                    CupertinoActivityIndicator(),
+              ),
+              height: 38.sp,
+              width: 38.sp,
+              decoration:  BoxDecoration(
+                color: AppCubit.get(context).isDark == false
+                    ? Colors.transparent
+                    : Colors.transparent,
+                borderRadius: BorderRadius.all(Radius.circular(.4.h)),
+              ),
+            ),
+            SizedBox(
+              width: 4.w,
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  height: 1.h,
+                ),
+                Text(
+                  '${qout.arabicName}',
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                      fontSize: 15.sp,
+                      fontFamily: 'ElMessiri',
+                      fontWeight: FontWeight.w600,
+                      color: AppCubit.get(context).isDark == false
+                          ? Colors.grey[700]
+                          : Colors.white),
+                ),
+                SizedBox(height: .8.h,),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(top: 0.sp),
+                      child: Container(
+                          height: 2.h,
+                          width: 4.w,
+                          child: Image(
+                            height: 15.sp,
+                            color: Colors.grey,
+                            image:
+                            const AssetImage('assets/images/email.png'),
+                          )),
+                    ),
+                    SizedBox(
+                      width: 1.w,
+                    ),
+                    Container(
+                      height: 2.5.h,
+                      child: StreamBuilder<QuerySnapshot>(
+                        stream: AppCubit.get(context).GetNumberOfQoutes(id),
+                        builder: (context, snapshot) {
+                          if (!snapshot.hasData || snapshot.data!.size == 0) {
+                            return Text(
+                              '0 رسائل',
+                              style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 11.sp,
+                                  fontFamily: 'ElMessiri'),
+                              textAlign: TextAlign.center,
+                            );
+                          } else {
+                            return Text(
+                              '${snapshot.data!.docs.length} رسائل ',
+                              style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 11.sp,
+                                  fontFamily: 'ElMessiri'),
+                              textAlign: TextAlign.center,
+                            );
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            SizedBox(
+              width: 1.w,
+            ),
+          ],
+        ),
+      ),
+    ),
+  ),
+);

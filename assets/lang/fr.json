@@ -1,0 +1,25 @@
+
+
+{
+  "appName": "Quomx",
+  "photos": "Photos",
+  "quotes": "Devis",
+  "make": "Fabriquer",
+  "favorite": "Favorite",
+  "tap sound" : " Les voix",
+  "dark mode" : "Mode sombre",
+  "share app" : "Partager l'application",
+  "contact us" : "Nous contacter",
+  "rate us" : "Évaluez nous",
+  "application information" : "Informations sur la candidature",
+  "app version" : "Version de l'application",
+  "privacy policy": "Politique de confidentialité",
+  "click": "Cliquez pour accéder à la politique de confidentialité",
+  "noFavorite": "Vous n'avez pas de favoris",
+  "addForPhotos": "Veuillez ajouter vos photos préférées",
+  "addForQuotes": "Veuillez ajouter vos citations préférées",
+  "save": "pour les sauver ici",
+  "quoteMake": "Rédigez votre devis ici",
+  "download": "Téléchargé avec succès dans la galerie",
+  "copy":"Copié dans le presse-papier"
+}

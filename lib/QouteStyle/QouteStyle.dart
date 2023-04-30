@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:conditional_builder_null_safety/conditional_builder_null_safety.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +13,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:like_button/like_button.dart';
+import 'package:localize_and_translate/localize_and_translate.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:paginate_firestore/paginate_firestore.dart';
 import 'package:screenshot/screenshot.dart';
 import 'package:share_files_and_screenshot_widgets/share_files_and_screenshot_widgets.dart';
 import 'package:share_plus/share_plus.dart';
@@ -29,7 +32,8 @@ import '../AppCubit/appCubit.dart';
  class QouteStyle extends StatefulWidget {
    String qoute;
   int index;
-   QouteStyle(String this.qoute, this.index, {Key? key}) : super(key: key);
+  var id;
+   QouteStyle(String this.qoute, this.index, this.id, {Key? key}) : super(key: key);
 
   @override
   State<QouteStyle> createState() => _QouteStyleState();
@@ -58,7 +62,7 @@ class _QouteStyleState extends State<QouteStyle> {
   void _createBottomBannerAd() {
     _bottomBannerAd = BannerAd(
       adUnitId: Platform.isAndroid
-          ? 'ca-app-pub-6775155780565884/1588965913'
+          ? 'ca-app-pub-3940256099942544/6300978111'
           : 'ca-app-pub-3940256099942544/2934735716',
       size: AdSize.banner,
       request: AdRequest(),
@@ -80,7 +84,9 @@ class _QouteStyleState extends State<QouteStyle> {
   void initState() {
     _createBottomBannerAd();
     contoller = PageController(initialPage: widget.index, keepPage: true,);
-  //  AppCubit.get(context).QouteStyleAd.load();
+    AppCubit.get(context).fntSize = 0;
+    AppCubit.get(context).changeArabicText= 0;
+    AppCubit.get(context).changeText= 0;
     super.initState();
   }
    @override
@@ -96,7 +102,42 @@ class _QouteStyleState extends State<QouteStyle> {
                  statusBarIconBrightness:  Brightness.light,
                ),
                child: Scaffold(
-                 body:PageView.builder(
+                 body: PaginateFirestore(
+                   itemBuilder: (context, documentSnapshots, index)
+                   {
+                     /*
+                     AppCubit.get(context).Qoutess = [];
+                     for (var doc in documentSnapshots) {
+                       AppCubit.get(context).Qoutess.add(TypeOfQoutesModel(Qoute:doc['qoute'],));
+                     }
+
+                      */
+                     return pageView(AppCubit.get(context).Qoutess[index]);
+
+                   }, // orderBy is compulsary to enable pagination
+                   query:AppCubit.get(context).GetQoutesFromTypeOfQoutesForPagination(widget.id),
+                   itemBuilderType: PaginateBuilderType.pageView,
+                   scrollDirection: Axis.horizontal,
+                   onPageChanged:(page){
+                     if(AppCubit.get(context).interstialadCountForQuoteStyle==3)
+                     {
+                       AppCubit.get(context).showInterstialAd();
+                     }
+                     else if(AppCubit.get(context).interstialadCountForQuoteStyle==0) {
+                       AppCubit.get(context).loadInterstialAd();
+                     }
+                     AppCubit.get(context).adCountForQouteStyle();
+                     print('quote == ${AppCubit.get(context).interstialadCountForQuoteStyle}');
+                   },
+                   pageController:contoller,
+
+                   itemsPerPage:AppCubit.get(context).Qoutess.length,
+                   shrinkWrap: false,
+                   bottomLoader:Text(''),
+                   isLive: true,
+                 ),
+                 /*
+                 PageView.builder(
                    scrollDirection: Axis.horizontal,
                    onPageChanged: (page)
                    {
@@ -118,6 +159,8 @@ class _QouteStyleState extends State<QouteStyle> {
                    controller: contoller,
                    itemBuilder: (BuildContext context, int index)=>pageView(AppCubit.get(context).Qoutess[index]),
                  ),
+
+                  */
                  /*
                  Stack(
                    children: [
@@ -794,14 +837,29 @@ class _pageViewState extends State<pageView> {
       final bytes = await file.readAsBytes();
       AudioCache().playBytes(bytes);
     }
-    if(AppCubit.get(context).IsFavoriteList.containsValue(widget.qoutes.Qoute))
+    if(translator.activeLanguageCode!='ar')
     {
-      AppCubit.get(context).deleteeDataForQuoteStylePage(qoute: widget.qoutes.Qoute);
-    }
-    else
-    {
-      AppCubit.get(context).insertToDatabaseForQuoteStyle(qoute: widget.qoutes.Qoute);
+      if(AppCubit.get(context).IsFavoriteList.containsValue(widget.qoutes.Qoute))
+      {
+        AppCubit.get(context).deleteeDataForQuoteStylePage(qoute: widget.qoutes.Qoute);
+      }
+      else
+      {
+        AppCubit.get(context).insertToDatabaseForQuoteStyle(qoute: widget.qoutes.Qoute);
 
+      }
+    }
+    if(translator.activeLanguageCode=='ar')
+    {
+      if(AppCubit.get(context).IsFavoriteList.containsValue(widget.qoutes.arabicQuote))
+      {
+        AppCubit.get(context).deleteeDataForQuoteStylePage(qoute: widget.qoutes.arabicQuote);
+      }
+      else
+      {
+        AppCubit.get(context).insertToDatabaseForQuoteStyle(qoute: widget.qoutes.arabicQuote);
+
+      }
     }
 
     return !isLiked;
@@ -820,15 +878,24 @@ class _pageViewState extends State<pageView> {
                 children: [
                   Expanded(
                     child:Container(
-                      decoration:  BoxDecoration(image:  DecorationImage(fit: BoxFit.cover,image: AppCubit.get(context).Photoess[AppCubit.get(context).change])),
+                      decoration:  BoxDecoration(image:  DecorationImage(fit: BoxFit.cover,image:AppCubit.get(context).isDark?AppCubit.get(context).PhotoessForDark[AppCubit.get(context).change]:AppCubit.get(context).Photoess[AppCubit.get(context).change])),
                       child: InkWell(
                         splashColor: Colors.transparent,
                         highlightColor: Colors.transparent,
                         onTap: ()
                         async {
+                          /*
                           if(AppCubit.get(context).music==true)
                           {
                             final file = await AudioCache().loadAsFile('mix.wav');
+                            final bytes = await file.readAsBytes();
+                            AudioCache().playBytes(bytes);
+                          }
+
+                           */
+                          if(AppCubit.get(context).music==true)
+                          {
+                            final file = await AudioCache().loadAsFile('mixin.wav');
                             final bytes = await file.readAsBytes();
                             AudioCache().playBytes(bytes);
                           }
@@ -844,16 +911,18 @@ class _pageViewState extends State<pageView> {
                                 child: Container(height: 30.h,)),
                             Expanded(flex: 10,
                               child: Padding(
-                                padding:  EdgeInsets.only(top: 30.sp,bottom: 30.sp,left: 15.sp,right: 15.sp),
+                                padding:  EdgeInsets.only(top: 30.sp,bottom: 30.sp,left: 10.sp,right: 10.sp),
                                 child: Center(
                                   child: Text(
-                                    '${widget.qoutes.Qoute}',
+                                    translator.isDirectionRTL(context)?
+                                    '${widget.qoutes.arabicQuote}':'${widget.qoutes.Qoute}',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                         height: AppCubit.get(context).GetDeviceTypeOfStyleScreen(),
                                         color: Colors.white,
-                                        fontFamily: AppCubit.get(context).Texts[AppCubit.get(context).changeText],
-                                        fontSize: AppCubit.get(context).forChangeFontSize(context),
+                                        fontFamily:translator.isDirectionRTL(context)?AppCubit.get(context).ArabicFonts[AppCubit.get(context).changeArabicText]: AppCubit.get(context).Texts[AppCubit.get(context).changeText],
+                                  //      fontSize: AppCubit.get(context).forChangeFontSize(context),
+                                        fontSize: AppCubit.get(context).fntListSizes[AppCubit.get(context).fntSize],
                                         fontWeight: FontWeight.bold),
                                     overflow:TextOverflow.visible,
                                   ),
@@ -881,9 +950,18 @@ class _pageViewState extends State<pageView> {
                                               final bytes = await file.readAsBytes();
                                               AudioCache().playBytes(bytes);
                                             }
-                                            final data = ClipboardData(text: widget.qoutes.Qoute.toString());
-                                            Clipboard.setData(data);
-                                            Fluttertoast.showToast(msg: 'copied to clipboard',gravity: ToastGravity.CENTER);
+                                            if(translator.activeLanguageCode!='ar')
+                                            {
+                                              final data = ClipboardData(text: widget.qoutes.Qoute.toString());
+                                              Clipboard.setData(data);
+                                              Fluttertoast.showToast(msg:'copy'.tr(),gravity: ToastGravity.CENTER);
+                                            }
+                                            if(translator.activeLanguageCode=='ar')
+                                            {
+                                              final data = ClipboardData(text: widget.qoutes.arabicQuote.toString());
+                                              Clipboard.setData(data);
+                                              Fluttertoast.showToast(msg:'copy'.tr(),gravity: ToastGravity.CENTER);
+                                            }
                                           },
                                           padding: EdgeInsets.zero,
                                           icon: const Icon(
@@ -925,14 +1003,24 @@ class _pageViewState extends State<pageView> {
                                               final bytes = await file.readAsBytes();
                                               AudioCache().playBytes(bytes);
                                             }
-                                            Clipboard.setData(ClipboardData());
-                                            Share.share('${widget.qoutes.Qoute.toString()}');
+                                            if(translator.activeLanguageCode!='ar')
+                                            {
+                                              Clipboard.setData(ClipboardData());
+                                              Share.share('${widget.qoutes.Qoute.toString()}');
+                                            }
+                                            if(translator.activeLanguageCode=='ar')
+                                            {
+                                              Clipboard.setData(ClipboardData());
+                                              Share.share('${widget.qoutes.arabicQuote.toString()}');
+                                            }
 
                                           },
-                                          padding: EdgeInsets.zero,
-                                          icon: const Icon(
-                                            MdiIcons.shareVariant,
-                                            color: Colors.white,
+                                          padding: EdgeInsets.only(right: 1.5.sp),
+                                          icon:Image(
+                                            image: AssetImage(
+                                              'assets/newImages/shareNW.png',
+                                            ),
+                                            height: 19.sp,color: Colors.white,
                                           )),
                                     ),
                                     SizedBox(width: 6.w,),
@@ -951,15 +1039,21 @@ class _pageViewState extends State<pageView> {
                                               final bytes = await file.readAsBytes();
                                               AudioCache().playBytes(bytes);
                                             }
+                                            translator.isDirectionRTL(context)==false?
                                             setState(() {
                                               AppCubit.get(context).ChangeText();
+                                            }):setState(() {
+                                              AppCubit.get(context).ChangeArabicText();
                                             });
                                           },
                                           padding: EdgeInsets.zero,
-                                          icon: Image(fit: BoxFit.cover,color: Colors.white,
-                                            alignment: AlignmentDirectional.center,
-                                            height: 17.5.sp,
-                                            image: const AssetImage('assets/images/type.png'),
+                                          icon: Padding(
+                                            padding:  EdgeInsets.only(top: 2.sp),
+                                            child: Image(fit: BoxFit.cover,color: Colors.white,
+                                              alignment: AlignmentDirectional.center,
+                                              height: 27.sp,
+                                              image: const AssetImage('assets/newImages/font-size.png',),
+                                            ),
                                           )),
                                     ),
                                     SizedBox(width: 6.w,),
@@ -982,31 +1076,41 @@ class _pageViewState extends State<pageView> {
                                   */
                                     Container(
                                       decoration: BoxDecoration(shape: BoxShape.circle,backgroundBlendMode: BlendMode.softLight,color: Colors.white),
-                                      child: IconButton(
-                                        onPressed: () {  },
-                                        icon: LikeButton(
-                                          padding: EdgeInsets.zero,
-                                          size: 18.sp,
-                                          circleColor:
-                                          const CircleColor(start: Colors.white, end: Colors.white),
-                                          bubblesColor: const BubblesColor(
-                                            dotPrimaryColor: Colors.white,
-                                            dotSecondaryColor: Colors.white,
-                                            dotLastColor: Colors.white,
-                                            dotThirdColor: Colors.white,
+                                      child: Padding(
+                                        padding: EdgeInsets.only(right:translator.isDirectionRTL(context)? 2.sp:0),
+                                        child: IconButton(
+                                          onPressed: () {  },
+                                          icon: LikeButton(
+                                            padding: EdgeInsets.zero,
+                                            size: translator.isDirectionRTL(context)?22.sp :22.sp,
+                                            circleColor:
+                                            const CircleColor(start: Colors.red, end: Colors.red),
+                                            bubblesColor: BubblesColor(
+                                              dotPrimaryColor:AppCubit.get(context).isDark?Colors.red:Colors.red,
+                                              dotSecondaryColor: AppCubit.get(context).isDark?Colors.purple:Colors.purple,
+                                              dotLastColor: AppCubit.get(context).isDark?Colors.orange:Colors.orange,
+                                              dotThirdColor: AppCubit.get(context).isDark?Colors.red:Colors.red,
+                                            ),
+                                            onTap: onLikeButtonTapped,
+                                            isLiked: isLiked,
+                                            likeBuilder: ( isLiked) {
+                                              return Padding(
+                                                padding:  EdgeInsets.only(top: .4.sp,right: .2.sp),
+                                                child:
+                                                translator.isDirectionRTL(context)?
+                                                Icon(
+                                                  AppCubit.get(context).function(widget.qoutes.arabicQuote)? Icons.favorite_outline:Icons.favorite,
+                                                  color:AppCubit.get(context).function(widget.qoutes.arabicQuote)? Colors.white : Colors.red,
+                                                  size: translator.isDirectionRTL(context)?22.sp:24.sp,
+                                                ):
+                                                Icon(
+                                                  AppCubit.get(context).function(widget.qoutes.Qoute)? Icons.favorite_outline:Icons.favorite,
+                                                  color:AppCubit.get(context).function(widget.qoutes.Qoute)? Colors.white : Colors.red,
+                                                  size: translator.isDirectionRTL(context)?22.sp:24.sp,
+                                                ),
+                                              );
+                                            },
                                           ),
-                                          onTap: onLikeButtonTapped,
-                                          isLiked: isLiked,
-                                          likeBuilder: ( isLiked) {
-                                            return Padding(
-                                              padding:  EdgeInsets.only(top: 0),
-                                              child: Icon(
-                                                AppCubit.get(context).function(widget.qoutes.Qoute)? Icons.favorite_outline:Icons.favorite,
-                                                color: isLiked ? Colors.white : Colors.white,
-                                                size: 20.sp,
-                                              ),
-                                            );
-                                          },
                                         ),
                                       ),
                                     ),
@@ -1065,7 +1169,7 @@ class _pageViewState extends State<pageView> {
                                             }
                                             final data = ClipboardData(text: widget.qoutes.Qoute.toString());
                                             Clipboard.setData(data);
-                                            Fluttertoast.showToast(msg: 'copied to clipboard',gravity: ToastGravity.CENTER);
+                                            Fluttertoast.showToast(msg: 'copy'.tr(),gravity: ToastGravity.CENTER);
                                           },
                                           padding: EdgeInsets.zero,
                                           icon: const Icon(
@@ -1121,9 +1225,11 @@ class _pageViewState extends State<pageView> {
                                             Share.share('${widget.qoutes.Qoute.toString()}');
                                           },
                                           padding: EdgeInsets.zero,
-                                          icon: const Icon(
-                                            MdiIcons.shareVariant,
-                                            color: Colors.white,
+                                          icon:  Image(
+                                            image: AssetImage(
+                                              'assets/newImages/shareNW.png',
+                                            ),
+                                            height: 19.sp,color: Colors.white,
                                           )),
                                     ),
                                     SizedBox(width: 6.w,),
@@ -1149,10 +1255,13 @@ class _pageViewState extends State<pageView> {
                                             });
                                           },
                                           padding: EdgeInsets.zero,
-                                          icon: Image(fit: BoxFit.cover,color: Colors.white,
-                                            alignment: AlignmentDirectional.center,
-                                            height: 15.sp,
-                                            image: const AssetImage('assets/images/type.png'),
+                                          icon: Padding(
+                                            padding:  EdgeInsets.only(top: 2.sp),
+                                            child: Image(fit: BoxFit.cover,color: Colors.white,
+                                              alignment: AlignmentDirectional.center,
+                                              height: 25.sp,
+                                              image: const AssetImage('assets/newImages/font-size.png',),
+                                            ),
                                           )),
                                     ),
                                     SizedBox(width: 6.w,),
@@ -1399,8 +1508,8 @@ class _pageViewState extends State<pageView> {
                 ],
               ),
               if(SizerUtil.deviceType==DeviceType.mobile)
-                Padding(
-                  padding:  EdgeInsets.symmetric(horizontal: 5.w,vertical: 5.h),
+                Positioned(
+                  top: 5.5.h,left: 5.w,
                   child: Container(
                     decoration: BoxDecoration(shape: BoxShape.circle,backgroundBlendMode: BlendMode.softLight,color: Colors.white),
                     child: IconButton(onPressed: () async {
@@ -1411,10 +1520,9 @@ class _pageViewState extends State<pageView> {
                         AudioCache().playBytes(bytes);
                       }
                       Navigator.pop(context);
-                    }, icon: Icon(IconBroken.Arrow___Left,size:18.sp),
+                    }, icon: Icon(translator.isDirectionRTL(context)?IconBroken.Arrow___Right:IconBroken.Arrow___Left,size:20.sp),
                       splashColor: Colors.transparent,color: Colors.white,
                       highlightColor: Colors.transparent,
-
                     ),
                   ),
                 ),
@@ -1431,7 +1539,7 @@ class _pageViewState extends State<pageView> {
                         AudioCache().playBytes(bytes);
                       }
                       Navigator.pop(context);
-                    }, icon: Icon(IconBroken.Arrow___Left,size:18.sp),
+                    }, icon: Icon(translator.isDirectionRTL(context)?IconBroken.Arrow___Right:IconBroken.Arrow___Left,size:18.sp),
                       splashColor: Colors.transparent,color: Colors.white,
                       highlightColor: Colors.transparent,
 
@@ -1440,6 +1548,27 @@ class _pageViewState extends State<pageView> {
                     width: 10.w,
                   ),
                 ),
+              Positioned(
+                top: 5.5.h,right: 5.w,
+                child: Container(
+                  decoration: BoxDecoration(shape: BoxShape.circle,backgroundBlendMode: BlendMode.softLight,color: Colors.white),
+                  child: IconButton(onPressed: () async {
+                    if(AppCubit.get(context).music==true)
+                    {
+                      final file = await AudioCache().loadAsFile('mixin.wav');
+                      final bytes = await file.readAsBytes();
+                      AudioCache().playBytes(bytes);
+                    }
+                    setState(() {
+                      AppCubit.get(context).changefntSizes();
+                    });
+                  }, icon: Image(image: AssetImage('assets/newImages/font.png',),color: Colors.white,height: 15.sp),
+                    splashColor: Colors.transparent,color: Colors.white,
+                    highlightColor: Colors.transparent,
+
+                  ),
+                ),
+              ),
             ],
           ),
         );

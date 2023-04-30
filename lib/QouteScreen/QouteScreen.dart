@@ -9,16 +9,21 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:hexcolor/hexcolor.dart';
+import 'package:instagram_share/instagram_share.dart';
 import 'package:like_button/like_button.dart';
+import 'package:localize_and_translate/localize_and_translate.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:paginate_firestore/paginate_firestore.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:share_whatsapp/share_whatsapp.dart';
 import 'package:sizer/sizer.dart';
 import 'package:statuses_only/AppCubit/appCubit.dart';
 import 'package:statuses_only/AppCubit/appCubitStates.dart';
 import 'package:statuses_only/QouteStyle/QouteStyle.dart';
-import 'package:statuses_only/adHelper/adHelper.dart';
 import 'package:statuses_only/model/typeOfQoutes/typeOfQoutes.dart';
 import 'package:statuses_only/shared/styles/icon_broken.dart';
+
 
 
 class QouteScreen extends StatefulWidget {
@@ -37,7 +42,7 @@ class _QouteScreenState extends State<QouteScreen> {
   void _createBottomBannerAd() {
     _bottomBannerAd = BannerAd(
       adUnitId: Platform.isAndroid
-          ? 'ca-app-pub-6775155780565884/1588965913'
+          ? 'ca-app-pub-3940256099942544/6300978111'
           : 'ca-app-pub-3940256099942544/2934735716',
       size: AdSize.banner,
       request: AdRequest(),
@@ -60,7 +65,7 @@ class _QouteScreenState extends State<QouteScreen> {
   void _createInlineBannerAd() {
     _inlineBannerAd = BannerAd(
       size: AdSize.mediumRectangle,
-      adUnitId: Platform.isAndroid?'ca-app-pub-6775155780565884/1588965913':'ca-app-pub-3940256099942544/2934735716',
+      adUnitId: Platform.isAndroid?'ca-app-pub-3940256099942544/6300978111':'ca-app-pub-3940256099942544/2934735716',
       request: AdRequest(),
       listener: BannerAdListener(
         onAdLoaded: (_) {
@@ -97,7 +102,7 @@ class _QouteScreenState extends State<QouteScreen> {
            appBar: AppBar(
              titleSpacing: 0,
              toolbarHeight: 7.6.h,
-             title: SizerUtil.deviceType==DeviceType.mobile?Text('${widget.name}',style: TextStyle(color: Colors.white,fontSize: 15.5.sp,fontWeight: FontWeight.w600,fontFamily:'VarelaRound',),)
+             title: SizerUtil.deviceType==DeviceType.mobile?Text('${widget.name}',style: TextStyle(color: Colors.white,fontSize: 15.5.sp,fontWeight: FontWeight.w600,fontFamily:translator.isDirectionRTL(context)?'ElMessiri':'VarelaRound',),)
                  :Padding(
                    padding: EdgeInsets.only(left: 0.w),
                    child: Text('${widget.name}',style: TextStyle(color: Colors.white,fontSize: 15.5.sp,fontWeight: FontWeight.w600,fontFamily:'VarelaRound',),),
@@ -105,7 +110,7 @@ class _QouteScreenState extends State<QouteScreen> {
              leadingWidth: 14.2.w,
              leading:IconButton(
                icon:  Icon(
-                 IconBroken.Arrow___Left,
+                 translator.isDirectionRTL(context)?IconBroken.Arrow___Right:IconBroken.Arrow___Left,
                  color: Colors.white,
                  size: 18.sp,
                ),
@@ -120,7 +125,6 @@ class _QouteScreenState extends State<QouteScreen> {
                },
              ),
            ),
-
            bottomNavigationBar:_isBottomBannerAdLoaded ? Container(
              color: AppCubit.get(context).isDark
                  ? Colors.black
@@ -129,7 +133,39 @@ class _QouteScreenState extends State<QouteScreen> {
              width: _bottomBannerAd.size.width.toDouble(),
              child: AdWidget(ad: _bottomBannerAd),
            ) : null,
-           body: StreamBuilder<QuerySnapshot>(
+           body: PaginateFirestore(
+             itemBuilder: (context, documentSnapshots, index)
+             {
+               AppCubit.get(context).Qoutess = [];
+               AppCubit.get(context).TranslatedQoutes=[];
+               for (var doc in documentSnapshots) {
+                 AppCubit.get(context).Qoutess.add(TypeOfQoutesModel(Qoute:doc['qoute'],arabicQuote:doc.data().toString().contains('Ar') ? doc['Ar'] : doc['qoute'],));
+               }
+               if (index != 5)
+               return BuilViewForQoute(context,AppCubit.get(context).Qoutess[index],index,widget.id);
+               else if (index == 5&&_isInlineBannerAdLoaded ) {
+                 return Container(
+                   padding: EdgeInsets.only(
+                     bottom: 0,
+                   ),
+                   width: _inlineBannerAd.size.width.toDouble(),
+                   height: _inlineBannerAd.size.height.toDouble(),
+                   child: AdWidget(ad: _inlineBannerAd),
+                 );
+               }
+               else return Container(height: 0,);
+
+             }, // orderBy is compulsary to enable pagination
+             query: AppCubit.get(context).GetQoutesFromTypeOfQoutesForPagination(widget.id),
+             itemBuilderType: PaginateBuilderType.listView,
+             scrollDirection: Axis.vertical,
+             itemsPerPage:6,
+             shrinkWrap: false,
+             bottomLoader:Text(''),
+             isLive: true,
+           ),
+           /*
+           StreamBuilder<QuerySnapshot>(
              stream: AppCubit.get(context).GetQoutesFromTypeOfQoutes(widget.id),
              builder: (context, snapshot) {
                if (!snapshot.hasData) {
@@ -212,6 +248,8 @@ class _QouteScreenState extends State<QouteScreen> {
                }
              },
            ),
+
+            */
          );
        },
 
@@ -228,7 +266,8 @@ class _QouteScreenState extends State<QouteScreen> {
  class BuilViewForQoute extends StatefulWidget {
   TypeOfQoutesModel qout;
   int index;
-    BuilViewForQoute(BuildContext context, TypeOfQoutesModel this.qout,this.index, {Key? key}) : super(key: key);
+  var id;
+    BuilViewForQoute(BuildContext context, TypeOfQoutesModel this.qout,this.index, this.id, {Key? key}) : super(key: key);
 
   @override
   State<BuilViewForQoute> createState() => _BuilViewForQouteState();
@@ -246,37 +285,43 @@ class _BuilViewForQouteState extends State<BuilViewForQoute> {
       final bytes = await file.readAsBytes();
       AudioCache().playBytes(bytes);
     }
-    if(AppCubit.get(context).IsFavoriteList.containsValue(widget.qout.Qoute))
+    if(translator.activeLanguageCode!='ar')
     {
-      AppCubit.get(context).deleteeData(qoute: widget.qout.Qoute).then((value)
+      if(AppCubit.get(context).IsFavoriteList.containsValue(widget.qout.Qoute))
       {
-        setState(() {
-          AppCubit.get(context).getDataFromDatabaseForLikeButton(AppCubit.get(context).database);
+        AppCubit.get(context).deleteeData(qoute: widget.qout.Qoute).then((value)
+        {
+          setState(() {
+            AppCubit.get(context).getDataFromDatabaseForLikeButton(AppCubit.get(context).database);
+          });
         });
-      });
-      /*
-                 .then((value)
-             {
-
-               Fluttertoast.showToast(msg: 'Deleted from favorites',gravity: ToastGravity.CENTER,backgroundColor: Colors.red);
-             });
-
-              */
+      }
+      else
+      {
+        AppCubit.get(context).insertToDatabase(qoute: widget.qout.Qoute).then((value){
+          setState(() {
+            AppCubit.get(context).getDataFromDatabaseForLikeButton(AppCubit.get(context).database);
+          });});
+      }
     }
-    else
+    if(translator.activeLanguageCode=='ar')
     {
-      AppCubit.get(context).insertToDatabase(qoute: widget.qout.Qoute).then((value){
-        setState(() {
-          AppCubit.get(context).getDataFromDatabaseForLikeButton(AppCubit.get(context).database);
-      });});
-      /*
-                 .then((value)
-             {
-               Fluttertoast.showToast(msg: 'Added to favorites',gravity: ToastGravity.CENTER);
-
-             });
-
-                  */
+      if(AppCubit.get(context).IsFavoriteList.containsValue(widget.qout.arabicQuote))
+      {
+        AppCubit.get(context).deleteeData(qoute: widget.qout.arabicQuote).then((value)
+        {
+          setState(() {
+            AppCubit.get(context).getDataFromDatabaseForLikeButton(AppCubit.get(context).database);
+          });
+        });
+      }
+      else
+      {
+        AppCubit.get(context).insertToDatabase(qoute: widget.qout.arabicQuote).then((value){
+          setState(() {
+            AppCubit.get(context).getDataFromDatabaseForLikeButton(AppCubit.get(context).database);
+          });});
+      }
     }
 
     return !isLiked;
@@ -294,13 +339,21 @@ class _BuilViewForQouteState extends State<BuilViewForQoute> {
              decoration: BoxDecoration(
                //  ${AppCubit.get(context).Images[AppCubit.get(context).change]}
                color:AppCubit.get(context).isDark==false?Colors.white:Colors.black,
+               border: Border.all(
+                 color: AppCubit.get(context).isDark==false?Colors.grey[300]!:Colors.white54,
+                 width: 1,
+               ),
+              /*
                boxShadow: [
                  BoxShadow(
-                   offset: const Offset(0, 1),
-                   blurRadius: 5,
+               //    offset: const Offset(0, .2),
+                   blurRadius: .5,
+                   blurStyle: BlurStyle.solid,
                    color: AppCubit.get(context).isDark==false?Colors.black.withOpacity(0.3):Colors.white,
                  ),
                ],
+
+               */
                borderRadius: BorderRadius.circular(1.1.h),
              ),
 
@@ -317,7 +370,7 @@ class _BuilViewForQouteState extends State<BuilViewForQoute> {
                      }
                      AppCubit.get(context).change=0;
                      AppCubit.get(context).changeText=0;
-                     if(AppCubit.get(context).interstialadCount==5)
+                     if(AppCubit.get(context).interstialadCount==3)
                      {
                        AppCubit.get(context).showInterstialAd();
                      }
@@ -328,14 +381,22 @@ class _BuilViewForQouteState extends State<BuilViewForQoute> {
                      Navigator.push(
                        context,
                        MaterialPageRoute(
-                         builder: (context) => QouteStyle('${widget.qout.Qoute}',widget.index),
+                         builder: (context)
+                         {
+                           if(translator.activeLanguageCode!='ar')
+                        return  QouteStyle('${widget.qout.Qoute}',widget.index,widget.id);
+                           else
+                             return  QouteStyle('${widget.qout.arabicQuote}',widget.index,widget.id);
+                         }
                        ),
                      );
                    },
                    child: Padding(
                      padding:  EdgeInsets.all(4.h),
-                     child: Text(
-                       '${widget.qout.Qoute}',
+                     child:
+                     translator.activeLanguageCode!='ar'?
+                     Text(
+                        '${widget.qout.Qoute}',
                        textAlign: TextAlign.center,
                        style: TextStyle(
                      //      height: 1.2.sp,
@@ -345,24 +406,154 @@ class _BuilViewForQouteState extends State<BuilViewForQoute> {
                        //    fontSize: 14.3.sp,
                            fontSize: 24.5.sp,
                            fontWeight: FontWeight.w600),
+                     ): Text(
+                       '${widget.qout.arabicQuote}',
+                       textAlign: TextAlign.center,
+                       style: TextStyle(
+                         //      height: 1.2.sp,
+                           height:1.1.sp,
+                           color: AppCubit.get(context).isDark==false?Colors.grey[700]:Colors.white,
+                           fontFamily:'ElMessiri',
+                           //    fontSize: 14.3.sp,
+                           fontSize: 16.sp,
+
+                           fontWeight: FontWeight.w600),
                      ),
                    ),
                  ),
                  Container(
                    padding: EdgeInsets.zero,
-                     height: 7.h,
+                     height: 7.5.h,
                    width: double.infinity,
-                   color: AppCubit.get(context).isDark==false?Colors.grey[300]:Colors.grey[900],
+                   decoration: BoxDecoration(borderRadius:BorderRadius.only(bottomRight:Radius.circular(1.h) ,bottomLeft:Radius.circular(1.h)),color: AppCubit.get(context).isDark==false?Colors.blue:Colors.grey[900]),
                    alignment: Alignment.center,
                    child: Center(
                      child: Row(
                        mainAxisAlignment: MainAxisAlignment.center,
                        crossAxisAlignment: CrossAxisAlignment.center,
                        children: [
+                         Expanded(child: Container()),
                          IconButton(
                              splashColor: Colors.transparent,
                              highlightColor: Colors.transparent,
-                             iconSize: 20.sp,
+                             onPressed: ()
+                             async {
+                               if(AppCubit.get(context).music==true)
+                               {
+                                 final file = await AudioCache().loadAsFile('mixin.wav');
+                                 final bytes = await file.readAsBytes();
+                                 AudioCache().playBytes(bytes);
+                               }
+                               if(translator.activeLanguageCode=='ar')
+                                 InstagramShare.share('${widget.qout.arabicQuote}', 'image');
+                               else
+                               InstagramShare.share('${widget.qout.Qoute}', 'image');
+                             },
+                             icon: AppCubit.get(context).isDark?Image(
+                               image: AssetImage(
+                                 'assets/images/instagramColored.png',
+                               ),
+                               height: 23.sp,
+                             ):Image(
+                               image: AssetImage(
+                                 'assets/images/instagram3.png',
+                               ),color: Colors.white,
+                               height: 23.sp,
+                             ),iconSize: 25.sp),
+                         if(SizerUtil.deviceType==DeviceType.mobile)
+                           SizedBox(width:3.w,),
+                         if(SizerUtil.deviceType==DeviceType.tablet)
+                           SizedBox(width:4.w,),
+                         IconButton(
+                             splashColor: Colors.transparent,
+                             highlightColor: Colors.transparent,
+                             onPressed: () async {
+                               if(AppCubit.get(context).music==true)
+                               {
+                                 final file = await AudioCache().loadAsFile('mixin.wav');
+                                 final bytes = await file.readAsBytes();
+                                 AudioCache().playBytes(bytes);
+                               }
+                               if(translator.activeLanguageCode=='ar')
+                                 shareWhatsapp.shareText('${widget.qout.arabicQuote}');
+                               else
+                               shareWhatsapp.shareText('${widget.qout.Qoute}');
+                             },
+                             icon: Image(
+                               image: AssetImage(
+                                 'assets/images/whatsapp3.png',
+                               ),
+                               height: 23.sp,color: AppCubit.get(context).isDark?HexColor('#25D366'):Colors.white,
+                             ),iconSize:25.sp),
+                         if(SizerUtil.deviceType==DeviceType.mobile)
+                         SizedBox(width:4.w,),
+                         if(SizerUtil.deviceType==DeviceType.tablet)
+                           SizedBox(width:4.w,),
+                         LikeButton(
+                           size: 25.sp,circleSize:24.sp,
+                           circleColor: const CircleColor(start: Colors.red, end: Colors.red),
+                           bubblesColor:  BubblesColor(
+                             dotPrimaryColor:AppCubit.get(context).isDark?Colors.red:Colors.red,
+                             dotSecondaryColor: AppCubit.get(context).isDark?Colors.purple:Colors.purple,
+                             dotLastColor: AppCubit.get(context).isDark?Colors.orange:Colors.orange,
+                             dotThirdColor: AppCubit.get(context).isDark?Colors.red:Colors.red,
+                           ),
+                           onTap: onLikeButtonTapped,
+                           isLiked: isLiked,
+                           likeBuilder: ( isLiked) {
+                             return
+                               translator.isDirectionRTL(context)?
+                               Icon(
+                                 AppCubit.get(context).function(widget.qout.arabicQuote)? Icons.favorite_outline:Icons.favorite,
+                                 color: AppCubit.get(context).function(widget.qout.arabicQuote)? Colors.white : Colors.red,
+                                 size: 25.sp,
+                               ):
+                               Icon(
+                               AppCubit.get(context).function(widget.qout.Qoute)? Icons.favorite_outline:Icons.favorite,
+                               color: AppCubit.get(context).function(widget.qout.Qoute)? Colors.white : Colors.red,
+                               size: 25.sp,
+                             );
+                           },
+                         ),
+                         if(SizerUtil.deviceType==DeviceType.mobile)
+                           SizedBox(width:2.w,),
+                         if(SizerUtil.deviceType==DeviceType.tablet)
+                           SizedBox(width:4.w,),
+                         IconButton(
+                             splashColor: Colors.transparent,
+                             highlightColor: Colors.transparent,
+                             iconSize: 23.sp,
+                             splashRadius: 26.sp,
+                             onPressed: () async{
+                               if(AppCubit.get(context).music==true)
+                               {
+                                 final file = await AudioCache().loadAsFile('mixin.wav');
+                                 final bytes = await file.readAsBytes();
+                                 AudioCache().playBytes(bytes);
+                               }
+                               if(translator.activeLanguageCode!='ar')
+                               {
+                                 Clipboard.setData(ClipboardData());
+                                 Share.share('${widget.qout.Qoute}',);
+                               }
+                               if(translator.activeLanguageCode=='ar')
+                               {
+                                 Clipboard.setData(ClipboardData());
+                                 Share.share('${widget.qout.arabicQuote}',);
+                               }
+                             },
+                             padding: EdgeInsets.zero,
+                             icon:Image(
+                               image: AssetImage(
+                                 'assets/newImages/shareNW.png',
+                               ),
+                               height: 20.sp,color:AppCubit.get(context).isDark?HexColor('#d9c82b'):Colors.white,
+                             )),
+                         SizedBox(width:1.w,),
+                         IconButton(
+                             splashColor: Colors.transparent,
+                             highlightColor: Colors.transparent,
+                             iconSize: 23.sp,
                              splashRadius: 26.sp,
                              onPressed: ()
                              async{
@@ -372,40 +563,26 @@ class _BuilViewForQouteState extends State<BuilViewForQoute> {
                                  final bytes = await file.readAsBytes();
                                  AudioCache().playBytes(bytes);
                                }
-                               final data = ClipboardData(text: '${widget.qout.Qoute}');
-                               Clipboard.setData(data);
-                               Fluttertoast.showToast(msg: 'copied to clipboard',gravity: ToastGravity.CENTER);
-                             },
-                             padding: EdgeInsets.zero,
-                             icon: const Icon(
-                               MdiIcons.contentCopy,
-                               color: Colors.blue,
-                             )),
-                         if(SizerUtil.deviceType==DeviceType.mobile)
-                         SizedBox(width:1.w,),
-                         if(SizerUtil.deviceType==DeviceType.tablet)
-                           SizedBox(width:4.w,),
-                         IconButton(
-                             splashColor: Colors.transparent,
-                             highlightColor: Colors.transparent,
-                             iconSize: 20.sp,
-                             splashRadius: 26.sp,
-                             onPressed: () async{
-                               if(AppCubit.get(context).music==true)
+                               if(translator.activeLanguageCode!='ar')
                                {
-                                 final file = await AudioCache().loadAsFile('mixin.wav');
-                                 final bytes = await file.readAsBytes();
-                                 AudioCache().playBytes(bytes);
+                                 final data = ClipboardData(text: '${widget.qout.Qoute}');
+                                 Clipboard.setData(data);
+                                 Fluttertoast.showToast(msg: 'copy'.tr(),gravity: ToastGravity.CENTER,);
                                }
-                               Clipboard.setData(ClipboardData());
-                               Share.share('${widget.qout.Qoute}');
+                               if(translator.activeLanguageCode=='ar')
+                               {
+                                 final data = ClipboardData(text: '${widget.qout.arabicQuote}');
+                                 Clipboard.setData(data);
+                                 Fluttertoast.showToast(msg: 'copy'.tr(),gravity: ToastGravity.CENTER,);
+                               }
                              },
                              padding: EdgeInsets.zero,
-                             icon: const Icon(
-                               MdiIcons.shareVariant,
-                               color: Colors.blue,
+                             icon: Icon(
+                               MdiIcons.contentCopy,size: 23.sp,
+                               color:AppCubit.get(context).isDark? Colors.blue:Colors.white,
                              )),
-                         SizedBox(width: 3.2.w,),
+
+                         Expanded(child: Container())
                          /*
                            IconButton(
                                key: Key('${widget.index}'),
@@ -442,26 +619,6 @@ class _BuilViewForQouteState extends State<BuilViewForQoute> {
                                )),
 
                             */
-                         LikeButton(
-                           size: 20.sp,
-                           circleColor:
-                           const CircleColor(start: Colors.blue, end: Colors.blue),
-                           bubblesColor:  BubblesColor(
-                             dotPrimaryColor:AppCubit.get(context).isDark?Colors.white:Colors.blue,
-                             dotSecondaryColor: AppCubit.get(context).isDark?Colors.white:Colors.blue,
-                             dotLastColor: AppCubit.get(context).isDark?Colors.white:Colors.blue,
-                             dotThirdColor: AppCubit.get(context).isDark?Colors.white:Colors.blue,
-                           ),
-                           onTap: onLikeButtonTapped,
-                           isLiked: isLiked,
-                           likeBuilder: ( isLiked) {
-                             return Icon(
-                               AppCubit.get(context).function(widget.qout.Qoute)? Icons.favorite_outline:Icons.favorite,
-                               color: isLiked ? Colors.blue : Colors.blue,
-                               size: 20.sp,
-                             );
-                           },
-                         ),
                        ],
                      ),
                    ),

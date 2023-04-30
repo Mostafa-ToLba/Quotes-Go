@@ -7,11 +7,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:hexcolor/hexcolor.dart';
+import 'package:localize_and_translate/localize_and_translate.dart';
 import 'package:onesignal_flutter/onesignal_flutter.dart';
 import 'package:sizer/sizer.dart';
 import 'package:statuses_only/AppCubit/appCubit.dart';
 import 'package:statuses_only/AppCubit/appCubitStates.dart';
+import 'package:statuses_only/FirstScreen/firstScreen.dart';
 import 'package:statuses_only/SplashScreen/SplashScreen.dart';
+import 'package:statuses_only/openAppAd/openAppAd.dart';
 import 'package:statuses_only/shared/local/cashe_helper.dart';
 
 void main() async {
@@ -33,7 +36,6 @@ void main() async {
     systemNavigationBarDividerColor: Colors.white,
     systemNavigationBarIconBrightness:Brightness.dark,
   ));
-
   //Remove this method to stop OneSignal Debugging
   OneSignal.shared.setLogLevel(OSLogLevel.verbose, OSLogLevel.none);
 
@@ -43,7 +45,13 @@ void main() async {
   OneSignal.shared.promptUserForPushNotificationPermission().then((accepted) {
     print("Accepted permission: $accepted");
   });
-  runApp( MyApp(dark: dark,isMusicOn:isMusicOn));
+  await translator.init(
+    localeType: LocalizationDefaultType.device,
+    languagesList: <String>['ar', 'en','bn','zh','es','fr','de','hi','pt','ru'],
+    assetsDirectory: 'assets/lang/',
+  );
+  runApp( LocalizedApp(child: MyApp(dark: dark,isMusicOn:isMusicOn))
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -57,17 +65,16 @@ class MyApp extends StatelessWidget {
     return BlocProvider(
       create: (BuildContext context) => AppCubit(InitialAppCubitState())..MakeItDark(fromShared: dark)..MakeItSound(fromShared: isMusicOn)
         ..createDatabase()
-        ..AddPhotoesToList(),
+        ..AddPhotoesToList()..AddPhotoesToListForDark()..createDatabaseForImages()..loadInterstialAd(),
       child:  Sizer(
         builder: (BuildContext context, Orientation orientation,
              deviceType) {
           return BlocConsumer<AppCubit,AppCubitStates>(
-            listener: (BuildContext context, state) {
-            },
+            listener: (BuildContext context, state) {},
             builder: (BuildContext context, Object? state) {
               return MaterialApp(
                 debugShowCheckedModeBanner: false,
-                title: 'Quotes Go',
+                title: translator.activeLanguageCode!='ar'?'Quomx':'كومكس',
                 theme: ThemeData(
                   backgroundColor: Colors.white,
                   appBarTheme: const AppBarTheme(
@@ -127,6 +134,9 @@ class MyApp extends StatelessWidget {
                 ),
                 themeMode:AppCubit.get(context).isDark==false? ThemeMode.light : ThemeMode.dark,
                 home: const SplashScreen(),
+                localizationsDelegates: translator.delegates, // Android + iOS Delegates
+                locale: translator.activeLocale, // Active locale
+                supportedLocales: translator.locals(),
               );
             },
           );

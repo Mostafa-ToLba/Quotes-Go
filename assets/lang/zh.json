@@ -1,0 +1,23 @@
+{
+  "appName": "Quomx",
+  "photos": "相片",
+  "quotes": "引號",
+  "make": "製作",
+  "favorite": "最喜歡的",
+  "tap sound" : " 聲音",
+  "dark mode" : "深色模式",
+  "share app" : "分享應用",
+  "contact us" : "聯繫我們",
+  "rate us" : "評價我們",
+  "application information" : "應用信息",
+  "app version" : "應用版本",
+  "privacy policy": "隱私政策",
+  "click": "點擊進入隱私政策",
+  "noFavorite": "你沒有任何收藏夾",
+  "addForPhotos": "請添加您喜歡的照片",
+  "addForQuotes": "請添加您最喜歡的報價",
+  "save": "將它們保存在這裡",
+  "quoteMake": "在這裡寫下你的報價",
+  "download": "已成功下載到圖庫",
+  "copy":"複製到剪貼板"
+}
